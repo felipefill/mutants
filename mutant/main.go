@@ -20,12 +20,47 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, nil
 	}
 
-	data := model.DNA{}
-	if err := json.Unmarshal([]byte(request.Body), &data); err != nil {
+	data, err := parseDNAFromString(request.Body)
+	if err != nil {
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, nil
 	}
 
-	return events.APIGatewayProxyResponse{Body: data.DNA[0], StatusCode: 200}, nil
+	//TODO: validate it's a NxN table
+
+	if !validateDNAHasOnlyValidBases(data.DNA) {
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, nil
+	}
+
+	if !isMutant(data.DNA) {
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 403}, nil
+	}
+
+	return events.APIGatewayProxyResponse{Body: "", StatusCode: 200}, nil
+}
+
+func isMutant(dna []string) bool {
+	return false
+}
+
+func parseDNAFromString(str string) (model.DNA, error) {
+	data := model.DNA{}
+	err := json.Unmarshal([]byte(str), &data)
+
+	return data, err
+}
+
+func validateDNAHasOnlyValidBases(dna []string) bool {
+	for row := 0; row < len(dna); row++ {
+		for column := 0; column < len(dna[row]); column++ {
+			currentChar := dna[row][column]
+			//TODO: Maybe we can use some kind of switch here
+			if currentChar != 'A' && currentChar != 'T' && currentChar != 'C' && currentChar != 'G' {
+				return false
+			}
+		}
+	}
+
+	return true
 }
 
 func main() {
