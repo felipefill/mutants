@@ -1,8 +1,11 @@
 package model
 
 import (
+	"crypto/sha1"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"strings"
 )
 
 const repetitionRequiredForSequence int = 4
@@ -27,6 +30,16 @@ func NewDNACheckFromJSONString(data string) (DNACheck, error) {
 	}
 
 	return dnaCheck, nil
+}
+
+// Hash returns a SHA1 hash that identifies this DNA check
+func (dnaCheck *DNACheck) Hash() string {
+	sequenceAsOneString := strings.Join(dnaCheck.DNA, ",")
+
+	hash := sha1.New()
+	hash.Write([]byte(sequenceAsOneString))
+
+	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
 // IsMutant checks whether this is a DNA sequence from a mutant
