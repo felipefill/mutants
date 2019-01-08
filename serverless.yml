@@ -13,15 +13,9 @@ package:
    - ./bin/**
 
 functions:
-  hello:
-    handler: bin/hello
+  mutant:
+    handler: bin/mutant
     events:
       - http:
-          path: hello
-          method: get
-  world:
-    handler: bin/world
-    events:
-      - http:
-          path: world
-          method: get
+          path: mutant
+          method: post

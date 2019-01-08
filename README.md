@@ -10,11 +10,11 @@ Mutants is a serverless GO app that can identify a given DNA as mutant.
 ## Building
 
 ```
-make
+make build
 ```
 
 ## Deploy
 
 ```
-sls deploy
+make deploy
 ```
