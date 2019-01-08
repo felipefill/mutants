@@ -15,8 +15,6 @@ import (
 // https://serverless.com/framework/docs/providers/aws/events/apigateway/#lambda-proxy-integration
 type Response events.APIGatewayProxyResponse
 
-const repetitionRequiredForSequence int = 4
-
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	if request.Body == "" {
@@ -35,112 +33,31 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 	return events.APIGatewayProxyResponse{Body: "", StatusCode: 200}, nil
 }
 
-func isMutant(dna []string) bool {
+func isMutant(data []string) bool {
 	count := 0
+	dna := model.DNA{DNA: data}
 
-	for row := 0; row < len(dna); row++ {
-		for column := 0; column < len(dna[row]); column++ {
-			if checkSequenceToTheRight(dna[row], row) {
+	for row := 0; row < len(dna.DNA) && count < 2; row++ {
+		for column := 0; column < len(dna.DNA[row]) && count < 2; column++ {
+			if dna.CheckSequenceToTheRight(row, column) {
 				count++
 			}
 
-			if checkSequenceDown(dna, row, column) {
+			if dna.CheckSequenceDown(row, column) {
 				count++
 			}
 
-			if checkSequenceDiagonalLeft(dna, row, column) {
+			if dna.CheckSequenceDiagonalLeft(row, column) {
 				count++
 			}
 
-			if checkSequenceDiagonalRight(dna, row, column) {
+			if dna.CheckSequenceDiagonalRight(row, column) {
 				count++
 			}
-
-			//TODO: break when count > 1
 		}
 	}
 
 	return count > 1
-}
-
-func checkSequenceToTheRight(dnaRow string, column int) bool {
-	if len(dnaRow)-column < repetitionRequiredForSequence {
-		return false
-	}
-
-	requiredBase := dnaRow[column]
-	c := column + 1
-
-	for loop := 0; loop < repetitionRequiredForSequence-1; loop++ {
-		if dnaRow[c] != requiredBase {
-			return false
-		}
-
-		c++
-	}
-
-	return true
-}
-
-func checkSequenceDown(dna []string, row, column int) bool {
-	if len(dna)-row < repetitionRequiredForSequence {
-		return false
-	}
-
-	requiredBase := dna[row][column]
-	r := row + 1
-
-	for loop := 0; loop < repetitionRequiredForSequence-1; loop++ {
-		if dna[r][column] != requiredBase {
-			return false
-		}
-
-		r++
-	}
-
-	return true
-}
-
-func checkSequenceDiagonalLeft(dna []string, row, column int) bool {
-	if row >= repetitionRequiredForSequence || column < repetitionRequiredForSequence-1 {
-		return false
-	}
-
-	requiredBase := dna[row][column]
-	r := row + 1
-	c := column - 1
-
-	for loop := 0; loop < repetitionRequiredForSequence-1; loop++ {
-		if dna[r][c] != requiredBase {
-			return false
-		}
-
-		r++
-		c--
-	}
-
-	return true
-}
-
-func checkSequenceDiagonalRight(dna []string, row, column int) bool {
-	if row >= repetitionRequiredForSequence || column >= repetitionRequiredForSequence {
-		return false
-	}
-
-	requiredBase := dna[row][column]
-	r := row + 1
-	c := column + 1
-
-	for loop := 0; loop < repetitionRequiredForSequence-1; loop++ {
-		if dna[r][c] != requiredBase {
-			return false
-		}
-
-		r++
-		c++
-	}
-
-	return true
 }
 
 func validateRequest(body string) (model.DNA, error) {
