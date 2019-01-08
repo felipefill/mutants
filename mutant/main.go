@@ -1,8 +1,11 @@
 package main
 
 import (
+	"encoding/json"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/felipefill/mutants/model"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the
@@ -13,7 +16,16 @@ type Response events.APIGatewayProxyResponse
 
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return events.APIGatewayProxyResponse{Body: "Hello, mutant!", StatusCode: 200}, nil
+	if request.Body == "" {
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, nil
+	}
+
+	data := model.DNA{}
+	if err := json.Unmarshal([]byte(request.Body), &data); err != nil {
+		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, nil
+	}
+
+	return events.APIGatewayProxyResponse{Body: data.DNA[0], StatusCode: 200}, nil
 }
 
 func main() {
