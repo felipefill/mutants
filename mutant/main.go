@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/felipefill/mutants/model"
 )
 
 // Response is of type APIGatewayProxyResponse since we're leveraging the
@@ -18,7 +17,7 @@ func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyRespo
 		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, nil
 	}
 
-	dnaCheck, err := model.NewDNACheckFromJSONString(request.Body)
+	dnaCheck, err := NewDNACheckFromJSONString(request.Body)
 	if err != nil {
 		return events.APIGatewayProxyResponse{Body: err.Error(), StatusCode: 400}, nil
 	}
@@ -34,7 +33,7 @@ func isMutant(data []string) bool {
 	// This is being done this way so that the code complies with the requirements
 	// Which is having a function with this signature
 	// My apprach would be to have it related to DNACheck struct
-	dnaCheck := model.DNACheck{DNA: data}
+	dnaCheck := DNACheck{DNA: data}
 
 	return dnaCheck.IsMutant()
 }
