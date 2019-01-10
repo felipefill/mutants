@@ -36,6 +36,12 @@ func TestInjectDatabase(t *testing.T) {
 	assert.Equal(t, db, GetDB())
 }
 
+func TestGETDBPanics(t *testing.T) {
+	os.Clearenv()
+	_db = nil
+	assert.Panics(t, func() { GetDB() })
+}
+
 func TestGetDatabaseInfo(t *testing.T) {
 	expectedHost := "localhost"
 	expectedName := "mutants"

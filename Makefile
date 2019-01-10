@@ -10,3 +10,6 @@ clean:
 
 deploy: clean build
 	sls deploy --verbose
+
+test: 
+	go test ./... -cover
