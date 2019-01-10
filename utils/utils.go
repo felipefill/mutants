@@ -8,8 +8,14 @@ import (
 	_ "github.com/lib/pq" // Postgres driver for database/sql
 )
 
+var _db *sql.DB
+
 // GetDB gets DB connection, in case of failure it will panic
 func GetDB() *sql.DB {
+	if _db != nil {
+		return _db
+	}
+
 	dbUser := MustGetEnvVar("DB_USER")
 	dbPassword := MustGetEnvVar("DB_PSWD")
 	dbName := MustGetEnvVar("DB_NAME")
@@ -21,6 +27,11 @@ func GetDB() *sql.DB {
 	}
 
 	return db
+}
+
+// InjectDatabase uses given database
+func InjectDatabase(database *sql.DB) {
+	_db = database
 }
 
 // MustGetEnvVar tries to retrieve given environment variable, in case of failure it will panic

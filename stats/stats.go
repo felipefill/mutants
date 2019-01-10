@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/felipefill/mutants/utils"
 )
@@ -22,7 +21,7 @@ func GetStats() (*Stats, error) {
 
 	rows, err := db.Query("select count(id) count, type from dna group by type")
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to query database %s", err.Error()))
+		return nil, errors.New("Failed to query database")
 	}
 
 	mutantCount := 0
@@ -35,7 +34,7 @@ func GetStats() (*Stats, error) {
 
 		err = rows.Scan(&count, &dnaType)
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("Failed to retrieve status %s", err.Error()))
+			return nil, errors.New("Failed to retrieve status")
 		}
 
 		if dnaType == "mutant" {
