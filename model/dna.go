@@ -2,17 +2,22 @@ package model
 
 import (
 	"crypto/sha1"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/felipefill/mutants/utils"
 )
 
 const repetitionRequiredForSequence int = 4
 
 // DNACheck represents a DNA check
 type DNACheck struct {
-	DNA []string `json:"Dna"`
+	DNA        []string `json:"Dna"`
+	DNAType    string
+	ExistsInDB bool
 }
 
 // NewDNACheckFromJSONString creates a DNA check from a json string
@@ -32,6 +37,33 @@ func NewDNACheckFromJSONString(data string) (DNACheck, error) {
 	return dnaCheck, nil
 }
 
+// Save stores DNA in our database
+func (dnaCheck *DNACheck) Save() error {
+	db := utils.GetDB()
+	defer db.Close()
+
+	dnaType := "ordinary"
+	if dnaCheck.IsMutant() {
+		dnaType = "mutant"
+	}
+
+	sequenceAsJSON, err := json.Marshal(&dnaCheck.DNA)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("dnaCheck.Hash(): %s", dnaCheck.Hash())
+	fmt.Printf("dnaType: %s", dnaType)
+	fmt.Printf("sequenceAsJSON: %s", sequenceAsJSON)
+
+	_, err = db.Exec("insert into dna(hashed, type, data) values($1, $2, $3)", dnaCheck.Hash(), dnaType, sequenceAsJSON)
+	if err != nil {
+		panic(err)
+	}
+
+	return nil
+}
+
 // Hash returns a SHA1 hash that identifies this DNA check
 func (dnaCheck *DNACheck) Hash() string {
 	sequenceAsOneString := strings.Join(dnaCheck.DNA, ",")
@@ -44,6 +76,15 @@ func (dnaCheck *DNACheck) Hash() string {
 
 // IsMutant checks whether this is a DNA sequence from a mutant
 func (dnaCheck *DNACheck) IsMutant() bool {
+	dnaType := dnaCheck.lookDNATypeInDatabase()
+	if dnaType == "mutant" {
+		return true
+	}
+
+	if dnaType == "ordinary" {
+		return false
+	}
+
 	count := 0
 
 	for row := 0; row < len(dnaCheck.DNA) && count < 2; row++ {
@@ -65,6 +106,8 @@ func (dnaCheck *DNACheck) IsMutant() bool {
 			}
 		}
 	}
+
+	dnaCheck.Save()
 
 	return count > 1
 }
@@ -200,4 +243,21 @@ func isValidDNABase(c byte) bool {
 	default:
 		return false
 	}
+}
+
+func (dnaCheck *DNACheck) lookDNATypeInDatabase() string {
+	db := utils.GetDB()
+	defer db.Close()
+
+	var dnaType string
+	err := db.QueryRow("select type from dna where hashed=$1", dnaCheck.Hash()).Scan(&dnaType)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "not found"
+		}
+
+		panic(err)
+	}
+
+	return dnaType
 }
