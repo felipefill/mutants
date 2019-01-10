@@ -1,5 +1,7 @@
 # Mutants
 
+[![Build Status](https://travis-ci.org/felipefill/mutants.svg?branch=master)](https://travis-ci.org/felipefill/mutants)
+
 Mutants is a serverless GO app that can identify a given DNA as mutant.
 
 This project was written in [GO](https://golang.org/) and uses [AWS Lambda](https://aws.amazon.com/lambda/) to serve its endpoints. 

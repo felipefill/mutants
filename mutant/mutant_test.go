@@ -6,9 +6,9 @@ import (
 	"errors"
 	"testing"
 
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/felipefill/mutants/utils"
-	sqlmock "github.com/gadle/go/pkg/dep/sources/https---github.com-DATA--DOG-go--sqlmock"
 	"github.com/stretchr/testify/assert"
 )
 

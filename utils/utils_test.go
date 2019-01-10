@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	sqlmock "github.com/gadle/go/pkg/dep/sources/https---github.com-DATA--DOG-go--sqlmock"
+	sqlmock "github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 )
 
