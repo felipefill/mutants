@@ -7,6 +7,7 @@ import (
 	"github.com/felipefill/mutants/utils"
 
 	sqlmock "github.com/DATA-DOG/go-sqlmock"
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -99,5 +100,54 @@ func TestGetStatsFailsToParseResult(t *testing.T) {
 	actualStats, actualError := GetStats()
 
 	assert.EqualValues(t, expectedStats, actualStats, "Stats are not equal")
+	assert.EqualValues(t, expectedError, actualError, "Error was not as expected")
+}
+
+func TestStatsHandlerSuccess(t *testing.T) {
+	request := events.APIGatewayProxyRequest{}
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+
+	utils.InjectDatabase(db)
+
+	mock.
+		ExpectQuery("select count\\(id\\) count, type from dna group by type").
+		WillReturnRows(
+			sqlmock.NewRows([]string{"count", "type"}).
+				AddRow(10, "mutant").
+				AddRow(40, "ordinary"),
+		)
+
+	var expectedError error
+	expectedResponse := events.APIGatewayProxyResponse{
+		Body:       "{\"count_mutant_dna\":10,\"count_human_dna\":50,\"ratio\":0.2}",
+		StatusCode: 200,
+	}
+
+	actualResponse, actualError := Handler(request)
+
+	assert.EqualValues(t, expectedResponse, actualResponse, "Responses are not equal")
+	assert.EqualValues(t, expectedError, actualError, "Error was not as expected")
+}
+
+func TestStatsHandlerFailsToRetrieveStats(t *testing.T) {
+	request := events.APIGatewayProxyRequest{}
+	db, mock, _ := sqlmock.New()
+	defer db.Close()
+
+	utils.InjectDatabase(db)
+	mock.
+		ExpectQuery("select count\\(id\\) count, type from dna group by type").
+		WillReturnError(sqlmock.ErrCancelled)
+
+	expectedResponse := events.APIGatewayProxyResponse{
+		Body:       "Failed to retrieve stats",
+		StatusCode: 500,
+	}
+	expectedError := errors.New("Failed to query database")
+
+	actualResponse, actualError := Handler(request)
+
+	assert.EqualValues(t, expectedResponse, actualResponse, "Responses are not equal")
 	assert.EqualValues(t, expectedError, actualError, "Error was not as expected")
 }

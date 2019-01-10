@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -18,13 +17,10 @@ type Response events.APIGatewayProxyResponse
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	stats, err := GetStats()
 	if err != nil {
-		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("Failed to retrieve stats %s", err.Error()), StatusCode: 500}, err
+		return events.APIGatewayProxyResponse{Body: "Failed to retrieve stats", StatusCode: 500}, err
 	}
 
-	json, err := json.Marshal(stats)
-	if err != nil {
-		return events.APIGatewayProxyResponse{Body: fmt.Sprintf("Failed to retrieve stats %s", err.Error()), StatusCode: 500}, err
-	}
+	json, _ := json.Marshal(stats)
 
 	return events.APIGatewayProxyResponse{Body: string(json), StatusCode: 200}, nil
 }
