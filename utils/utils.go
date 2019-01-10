@@ -16,17 +16,13 @@ func GetDB() *sql.DB {
 		return _db
 	}
 
-	dbUser := MustGetEnvVar("DB_USER")
-	dbPassword := MustGetEnvVar("DB_PSWD")
-	dbName := MustGetEnvVar("DB_NAME")
-	dbHost := MustGetEnvVar("DB_HOST")
-
-	db, err := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=require", dbUser, dbPassword, dbHost, dbName))
+	host, name, user, pswd := getDatabaseInfo()
+	_db, err := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=require", user, pswd, host, name))
 	if err != nil {
 		panic(fmt.Sprintf("Could not connect to database: %s", err.Error()))
 	}
 
-	return db
+	return _db
 }
 
 // InjectDatabase uses given database
@@ -43,4 +39,11 @@ func MustGetEnvVar(v string) string {
 	}
 
 	return envVar
+}
+
+func getDatabaseInfo() (host string, name string, user string, pswd string) {
+	return MustGetEnvVar("DB_HOST"),
+		MustGetEnvVar("DB_NAME"),
+		MustGetEnvVar("DB_USER"),
+		MustGetEnvVar("DB_PSWD")
 }
