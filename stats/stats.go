@@ -17,8 +17,6 @@ type Stats struct {
 func GetStats() (*Stats, error) {
 	db := utils.GetDB()
 
-	defer db.Close()
-
 	rows, err := db.Query("select count(id) count, type from dna group by type")
 	if err != nil {
 		return nil, errors.New("Failed to query database")

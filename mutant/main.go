@@ -14,7 +14,7 @@ type Response events.APIGatewayProxyResponse
 // Handler is our lambda handler invoked by the `lambda.Start` function call
 func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	if request.Body == "" {
-		return events.APIGatewayProxyResponse{Body: "", StatusCode: 400}, nil
+		return events.APIGatewayProxyResponse{Body: "Empty body", StatusCode: 400}, nil
 	}
 
 	dnaCheck, err := NewDNACheckFromJSONString(request.Body)

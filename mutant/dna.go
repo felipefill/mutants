@@ -15,9 +15,7 @@ const repetitionRequiredForSequence int = 4
 
 // DNACheck represents a DNA check
 type DNACheck struct {
-	DNA        []string `json:"Dna"`
-	DNAType    string
-	ExistsInDB bool
+	DNA []string `json:"Dna"`
 }
 
 // NewDNACheckFromJSONString creates a DNA check from a json string
@@ -26,7 +24,7 @@ func NewDNACheckFromJSONString(data string) (DNACheck, error) {
 	err := json.Unmarshal([]byte(data), &dnaCheck)
 
 	if err != nil {
-		return DNACheck{}, errors.New("Could not parse DNA check :" + err.Error())
+		return DNACheck{}, errors.New("Could not parse DNA check")
 	}
 
 	err = dnaCheck.validate()
@@ -38,30 +36,15 @@ func NewDNACheckFromJSONString(data string) (DNACheck, error) {
 }
 
 // Save stores DNA in our database
-func (dnaCheck *DNACheck) Save() error {
+func (dnaCheck *DNACheck) Save(dnaType string) {
 	db := utils.GetDB()
-	defer db.Close()
 
-	dnaType := "ordinary"
-	if dnaCheck.IsMutant() {
-		dnaType = "mutant"
-	}
+	sequenceAsJSON, _ := json.Marshal(&dnaCheck.DNA)
 
-	sequenceAsJSON, err := json.Marshal(&dnaCheck.DNA)
+	_, err := db.Exec("insert into dna(hashed, type, data) values($1, $2, $3)", dnaCheck.Hash(), dnaType, sequenceAsJSON)
 	if err != nil {
-		panic(err)
+		panic("Failed to store DNA")
 	}
-
-	fmt.Printf("dnaCheck.Hash(): %s", dnaCheck.Hash())
-	fmt.Printf("dnaType: %s", dnaType)
-	fmt.Printf("sequenceAsJSON: %s", sequenceAsJSON)
-
-	_, err = db.Exec("insert into dna(hashed, type, data) values($1, $2, $3)", dnaCheck.Hash(), dnaType, sequenceAsJSON)
-	if err != nil {
-		panic(err)
-	}
-
-	return nil
 }
 
 // Hash returns a SHA1 hash that identifies this DNA check
@@ -107,8 +90,12 @@ func (dnaCheck *DNACheck) IsMutant() bool {
 		}
 	}
 
-	dnaCheck.Save()
+	dnaType = "ordinary"
+	if count > 1 {
+		dnaType = "mutant"
+	}
 
+	dnaCheck.Save(dnaType)
 	return count > 1
 }
 
@@ -247,7 +234,6 @@ func isValidDNABase(c byte) bool {
 
 func (dnaCheck *DNACheck) lookDNATypeInDatabase() string {
 	db := utils.GetDB()
-	defer db.Close()
 
 	var dnaType string
 	err := db.QueryRow("select type from dna where hashed=$1", dnaCheck.Hash()).Scan(&dnaType)
