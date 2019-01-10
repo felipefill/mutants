@@ -2,7 +2,8 @@
 
 build:
 	dep ensure -v
-	env GOOS=linux go build -ldflags="-s -w" -o bin/mutant mutant/main.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/mutant mutant/*.go
+	env GOOS=linux go build -ldflags="-s -w" -o bin/stats stats/*.go
 
 clean:
 	rm -rf ./bin ./vendor Gopkg.lock

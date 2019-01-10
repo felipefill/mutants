@@ -24,3 +24,9 @@ functions:
       - http:
           path: mutant
           method: post
+  stats:
+    handler: bin/stats
+    events:
+      - http:
+          path: stats
+          method: get
